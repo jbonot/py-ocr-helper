@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "ocrhelper"
+version = "0.1.0"
+description = "A Python-based tool for preprocessing images and extracting text using Tesseract OCR."
+authors = ["Jeanine Bonot"]
+readme = "README.md"
+repository = "https://github.com/jbonot/ocrhelper"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+pillow = "^8.0.0"
+opencv-python = "^4.5.0"
+numpy = "^1.21.0"
+pytesseract = "^0.3.10"
