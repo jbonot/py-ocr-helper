@@ -26,12 +26,11 @@ for file_name in os.listdir(input_dir):
         # Save processed image
         ocrhelper.save_processed_image(processed_path, binary_image)
 
-        extracted_hocr = ocrhelper.extract_text_from_image(
+        extracted_hocr = ocrhelper.extract_hocr_from_image(
             binary_image,
             tesseract_params={
                 "lang": "nld+fra",
                 "config": r"--psm 6",
-                "extension": "hocr",
             },
         )
 

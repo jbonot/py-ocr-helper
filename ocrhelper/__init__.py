@@ -28,6 +28,8 @@ def save_processed_image(processed_image_path, binary):
     cv2.imwrite(processed_image_path, binary)
 
 
-def extract_text_from_image(binary_image, tesseract_params):
-    hocr_bytes = pytesseract.image_to_pdf_or_hocr(binary_image, **tesseract_params)
+def extract_hocr_from_image(binary_image, tesseract_params):
+    hocr_bytes = pytesseract.image_to_pdf_or_hocr(
+        binary_image, extension="hocr" ** tesseract_params
+    )
     return hocr_bytes.decode("utf-8")
