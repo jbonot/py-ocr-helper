@@ -21,7 +21,7 @@ for file_name in os.listdir(input_dir):
             output_dir, f"{os.path.splitext(file_name)[0]}.hocr"
         )
 
-        binary_image = ocrhelper.process_image(input_path, processed_path)
+        binary_image = ocrhelper.process_image_from_path(input_path, processed_path)
 
         # Save processed image
         ocrhelper.save_processed_image(processed_path, binary_image)

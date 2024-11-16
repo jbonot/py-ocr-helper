@@ -9,7 +9,11 @@ pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tessera
 
 def process_image(image_path, resize_factor=1):
     img = Image.open(image_path)
-    processed_image = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+    return process_image(img, resize_factor)
+
+
+def process_image(image, resize_factor=1):
+    processed_image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
     processed_image = cv2.cvtColor(processed_image, cv2.COLOR_BGR2GRAY)
 
     if resize_factor != 1:
