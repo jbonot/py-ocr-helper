@@ -7,7 +7,7 @@ from PIL import Image
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 
-def process_image(image_path, resize_factor=1):
+def process_image_from_path(image_path, resize_factor=1):
     img = Image.open(image_path)
     return process_image(img, resize_factor)
 
@@ -32,7 +32,7 @@ def save_processed_image(processed_image_path, binary):
     cv2.imwrite(processed_image_path, binary)
 
 
-def get_hocr_from_image(image, tesseract_params):
+def get_hocr_from_image(image, tesseract_params={}):
     hocr_bytes = pytesseract.image_to_pdf_or_hocr(
         image, extension="hocr", **tesseract_params
     )
