@@ -1,7 +1,8 @@
 import cv2
 import numpy as np
 import pytesseract
-from PIL import Image
+from PIL import Image, ImageGrab
+import re
 
 # Ensure Tesseract path is configured
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
@@ -37,3 +38,31 @@ def get_hocr_from_image(image, tesseract_params={}):
         image, extension="hocr", **tesseract_params
     )
     return hocr_bytes.decode("utf-8")
+
+
+def read_text_at_position(bbox, should_process=False, tesseract_params={}):
+    img = ImageGrab.grab(bbox)
+    if should_process:
+        img = process_image(img)
+    return pytesseract.image_to_string(img, **tesseract_params)
+
+
+def locate_text_at_position(
+    target_text, bbox, should_process=False, tesseract_params={}
+):
+    matches = []
+    img = ImageGrab.grab(bbox)
+    if should_process:
+        img = process_image(img)
+    hocr_content = get_hocr_from_image(img, tesseract_params)
+
+    # Search for target text in HOCR content using bounding box coordinates
+    for match in re.finditer(
+        r"bbox\s(\d+)\s(\d+)\s(\d+)\s(\d+).*?" + re.escape(target_text), hocr_content
+    ):
+        x1, y1, x2, y2 = map(int, match.groups())
+        centerX = bbox["x"] + x1 + (x2 - x1) // 2
+        centerY = bbox["y"] + y1 + (y2 - y1) // 2
+        matches.append((centerX, centerY))
+
+    return matches
