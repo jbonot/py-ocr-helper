@@ -40,6 +40,13 @@ def get_hocr_from_image(image, tesseract_params={}):
     return hocr_bytes.decode("utf-8")
 
 
+def get_hocr_from_bbox(bbox, should_process=False, tesseract_params={}):
+    img = ImageGrab.grab(bbox)
+    if should_process:
+        img = process_image(img)
+    return get_hocr_from_image(img, tesseract_params)
+
+
 def read_text_at_position(bbox, should_process=False, tesseract_params={}):
     img = ImageGrab.grab(bbox)
     if should_process:
@@ -51,10 +58,7 @@ def locate_text_at_position(
     target_text, bbox, should_process=False, tesseract_params={}
 ):
     matches = []
-    img = ImageGrab.grab(bbox)
-    if should_process:
-        img = process_image(img)
-    hocr_content = get_hocr_from_image(img, tesseract_params)
+    hocr_content = get_hocr_from_bbox(bbox, should_process, tesseract_params)
 
     # Search for target text in HOCR content using bounding box coordinates
     for match in re.finditer(
