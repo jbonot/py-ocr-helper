@@ -40,7 +40,7 @@ def get_hocr_from_image(image, tesseract_params={}):
     return hocr_bytes.decode("utf-8")
 
 
-def read_text_at_position(bbox, should_process=False, tesseract_params={}):
+def read_text_in_bbox(bbox, should_process=False, tesseract_params={}):
     img = ImageGrab.grab(bbox)
     if should_process:
         img = process_image(img)
