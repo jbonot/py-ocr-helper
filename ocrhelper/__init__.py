@@ -40,7 +40,11 @@ def process_image(image, color_mask=None, resize_factor=1):
 
     if resize_factor != 1:
         processed_image = cv2.resize(
-            processed_image, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC
+            processed_image,
+            None,
+            fx=resize_factor,
+            fy=resize_factor,
+            interpolation=cv2.INTER_CUBIC,
         )
 
     _, binary = cv2.threshold(
