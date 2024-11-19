@@ -1,8 +1,8 @@
 import cv2
 import numpy as np
-import pytesseract
+from lxml import etree
 from PIL import Image, ImageGrab
-import re
+import pytesseract
 
 # Ensure Tesseract path is configured
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
@@ -84,100 +84,109 @@ def save_processed_image(processed_image_path: str, binary: np.ndarray):
     cv2.imwrite(processed_image_path, binary)
 
 
-def get_hocr_from_image(image, tesseract_params: dict = {}) -> str:
+def get_hocr_from_image(image, tesseract_args: dict = {}) -> str:
     """
-    Converts an image to HOCR (HTML-based OCR) format using Tesseract.
+    Generate HOCR (HTML-based OCR) content from an image using Tesseract.
 
     Parameters:
-    - image (Any): The input image to be processed.
-    - tesseract_params (dict, optional): Additional parameters to be passed to Tesseract
-      (default is an empty dictionary).
+    - image: The input image to process.
+    - tesseract_args (dict, optional): A dictionary of additional arguments for Tesseract.
+      Example: {'lang': 'eng'} (default: {}).
 
     Returns:
-    - str: The HOCR output as a string, representing OCR results in HTML format.
+    - str: The HOCR content as a UTF-8 decoded string.
     """
     hocr_bytes = pytesseract.image_to_pdf_or_hocr(
-        image, extension="hocr", **tesseract_params
+        image, extension="hocr", **tesseract_args
     )
     return hocr_bytes.decode("utf-8")
 
 
 def read_text_in_bbox(
     bbox: tuple[int, int, int, int],
-    should_process: bool = False,
-    tesseract_params: dict = {},
+    processing_args: dict | None = None,
+    tesseract_args: dict | None = {},
 ) -> str:
     """
-    Extracts text from an image within a specified bounding box using Tesseract OCR.
+    Extract text from an image captured within a bounding box.
 
     Parameters:
-    - bbox (tuple[int, int, int, int]): A tuple representing the bounding box coordinates
-      in the form (x1, y1, x2, y2).
-    - should_process (bool, optional): Whether to preprocess the image before OCR (default is False).
-    - tesseract_params (dict, optional): Additional parameters for Tesseract OCR (default is an empty dictionary).
+    - bbox (tuple[int, int, int, int]): The bounding box (x1, y1, x2, y2) coordinates
+      defining the region to capture the image.
+    - processing_args (dict | None, optional): A dictionary of arguments for preprocessing
+      the image before performing OCR. If None, no preprocessing is applied (default: None).
+    - tesseract_args (dict | None, optional): A dictionary of additional arguments for Tesseract.
+      Example: {'lang': 'eng'} (default: {}).
 
     Returns:
     - str: The text extracted from the image within the bounding box.
     """
     img = ImageGrab.grab(bbox)
-    if should_process:
-        img = process_image(img)
-    return pytesseract.image_to_string(img, **tesseract_params)
+    if processing_args:
+        img = process_image(**processing_args)
+    return pytesseract.image_to_string(img, **tesseract_args)
 
 
 def get_hocr_from_bbox(
     bbox: tuple[int, int, int, int],
-    should_process: bool = False,
-    tesseract_params: dict = {},
+    processing_args: dict | None = None,
+    tesseract_args: dict | None = {},
 ) -> str:
     """
-    Extracts the HOCR (HTML-based OCR) from an image within a specified bounding box.
+    Generate HOCR (HTML-based OCR) content from an image captured within a bounding box.
 
     Parameters:
-    - bbox (tuple[int, int, int, int]): A tuple representing the bounding box coordinates
-      in the form (x1, y1, x2, y2).
-    - should_process (bool, optional): Whether to preprocess the image before OCR (default is False).
-    - tesseract_params (dict, optional): Additional parameters for Tesseract OCR (default is an empty dictionary).
+    - bbox (tuple[int, int, int, int]): The bounding box (x1, y1, x2, y2) coordinates
+      defining the region to capture the image.
+    - processing_args (dict | None, optional): A dictionary of arguments for preprocessing
+      the image before performing OCR. If None, no preprocessing is applied (default: None).
+    - tesseract_args (dict | None, optional): A dictionary of additional arguments for Tesseract.
+      Example: {'lang': 'eng'} (default: {}).
 
     Returns:
-    - str: The HOCR output as a string, representing OCR results in HTML format.
+    - str: The HOCR content as a UTF-8 decoded string.
     """
     img = ImageGrab.grab(bbox)
-    if should_process:
-        img = process_image(img)
-    return get_hocr_from_image(img, tesseract_params)
+    if processing_args:
+        img = process_image(**processing_args)
+    return get_hocr_from_image(img, tesseract_args)
 
 
 def locate_text_within_bbox(
     target_text: str,
     bbox: tuple[int, int, int, int],
-    should_process: bool = False,
-    tesseract_params: dict = {},
-) -> list:
+    processing_args: dict | None = None,
+    tesseract_args: dict | None = {},
+) -> list[tuple[int, int]]:
     """
-    Locates the positions of a specific target text within a bounding box in an image
-    using HOCR output to extract coordinates.
+    Locate occurrences of a target text within a bounding box, returning the center coordinates of each occurance.
 
     Parameters:
-    - target_text (str): The text to search for within the bounding box.
-    - bbox (tuple[int, int, int, int]): A tuple representing the bounding box coordinates
-      in the form (x1, y1, x2, y2).
-    - should_process (bool, optional): Whether to preprocess the image before OCR (default is False).
-    - tesseract_params (dict, optional): Additional parameters for Tesseract OCR (default is an empty dictionary).
+    - target_text (str): The text to search for in the HOCR output.
+    - bbox (tuple[int, int, int, int]): The bounding box (x1, y1, x2, y2) coordinates
+      defining the region to capture the image.
+    - processing_args (dict | None, optional): A dictionary of arguments for preprocessing
+      the image before performing OCR. If None, no preprocessing is applied (default: None).
+    - tesseract_args (dict | None, optional): A dictionary of additional arguments for Tesseract.
+      Example: {'lang': 'eng'} (default: {}).
 
     Returns:
-    - list: A list of tuples, each containing the (x, y) coordinates of the found text within the bounding box.
+    - list[tuple[int, int]]: A list of tuples, each containing the rounded center coordinates
+      (center_x, center_y) of the bounding box for each element matching the target text.
     """
-    matches = []
-    hocr_content = get_hocr_from_bbox(bbox, should_process, tesseract_params)
+    hocr_content = get_hocr_from_bbox(bbox, processing_args, tesseract_args)
+    elements = etree.fromstring(hocr_content, etree.HTMLParser()).xpath(
+        f'//*[contains(text(), "{target_text}")]'
+    )
+    results = []
+    for element in elements:
+        title_attr = element.get("title")
+        if title_attr and "bbox" in title_attr:
+            # Extract and process the bbox coordinates
+            bbox_str = title_attr.split("bbox")[-1].split(";")[0].strip()
+            bbox_coords = list(map(int, bbox_str.split()))
+            center_x = round((bbox_coords[0] + bbox_coords[2]) / 2)
+            center_y = round((bbox_coords[1] + bbox_coords[3]) / 2)
+            results.append((center_x, center_y))
 
-    # Search for target text in HOCR content using bounding box coordinates
-    for match in re.finditer(
-        r"bbox\s(\d+)\s(\d+)\s(\d+)\s(\d+).*?" + re.escape(target_text), hocr_content
-    ):
-        x1, y1, x2, y2 = map(int, match.groups())
-        centerX = bbox[0] + x1 + (x2 - x1) // 2
-        centerY = bbox[1] + y1 + (y2 - y1) // 2
-        matches.append((centerX, centerY))
-
-    return matches
+    return results
