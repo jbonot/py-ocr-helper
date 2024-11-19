@@ -8,8 +8,34 @@ import re
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 
-def process_image(image, resize_factor=1):
+def process_image(image, color_mask=None, resize_factor=1):
+    """
+    Process the image with optional resizing and color masking.
+
+    Parameters:
+    - image: The input image to process.
+    - color_mask: A tuple of two values (lowerb, upperb) for color masking (default None).
+    - resize_factor: The factor by which to resize the image (default 1, no resizing).
+
+    Returns:
+    - The processed image.
+    """
     processed_image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+
+    if color_mask:
+        if not (isinstance(color_mask, tuple) and len(color_mask) == 2):
+            print(
+                "Invalid color mask. It should be a tuple of length 2. Color mask will be ignored."
+            )
+        else:
+            mask = cv2.inRange(
+                processed_image, np.array(color_mask[0]), np.array(color_mask[1])
+            )
+            processed_image = cv2.bitwise_and(
+                processed_image, processed_image, mask=mask
+            )
+            processed_image = cv2.cvtColor(processed_image, cv2.COLOR_BGR2GRAY)
+
     processed_image = cv2.cvtColor(processed_image, cv2.COLOR_BGR2GRAY)
 
     if resize_factor != 1:
